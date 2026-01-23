@@ -1,0 +1,8 @@
+data/**
+
+!data/
+!data/rdata/
+
+!data/rdata/*.RData
+
+.idea
