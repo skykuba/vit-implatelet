@@ -6,3 +6,5 @@ data/**
 !data/rdata/*.RData
 
 .idea
+
+.venv
