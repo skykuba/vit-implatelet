@@ -8,3 +8,6 @@ data/**
 .idea
 
 .venv
+
+.env
+.env.*
