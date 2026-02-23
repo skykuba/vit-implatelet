@@ -11,3 +11,7 @@ data/**
 
 .env
 .env.*
+
+src/data/include/normalized_counts.tsv
+src/data/KEGG_Pathway_Image/**
+src/data/raw/**
