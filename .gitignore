@@ -13,6 +13,7 @@ data/**
 .env.*
 
 src/data/include/normalized_counts.tsv
+src/data/include/counts_raw.csv
 src/data/include/__pycache__/**
 src/data/include/venv/**
 src/data/KEGG_Pathway_Image/**
