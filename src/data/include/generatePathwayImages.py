@@ -3,6 +3,7 @@ import json
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 
 
 # ==============================
@@ -48,7 +49,8 @@ def generate_kegg_pathway_images(path,
                                  data_filtered,
                                  json_path,
                                  pathways_folder="KEGG_Pathway_Image",
-                                 sample_groups=None):
+                                 sample_groups=None,
+                                 max_images=None):
 
     # ---- Load JSON of KEGG ----
     with open(json_path, "r", encoding="utf-8") as f:
@@ -94,11 +96,16 @@ def generate_kegg_pathway_images(path,
     else:
         file_labels = sample_names
 
-    print(f"Generowanie obrazów dla {len(sample_names)} próbek...")
 
     # ---- Generate for each sample ----
-    for col_idx in range(len(sample_names)):
+    total_samples = len(sample_names)
 
+    if max_images is not None:
+        total_samples = min(max_images, total_samples)
+
+    print(f"Generowanie obrazów dla {total_samples} próbek...")
+
+    for col_idx in range(total_samples):
         output = build_expression_pathway_matrix(
             sig_sym, met_sym, cancer_sym,
             data_filtered,
@@ -107,37 +114,45 @@ def generate_kegg_pathway_images(path,
             pic_height
         )
 
-        # Save matrix
-        np.savetxt(
-            os.path.join(matrix_path, file_labels[col_idx] + ".txt"),
-            output,
-            fmt="%.5f"
-        )
-
-        # Prepare image (only positive values -> red)
+        # 1. Przygotowanie danych
         pos_output = np.maximum(output, 0)
+        pos_output = np.rot90(pos_output, k=3)
         max_val = np.max(pos_output)
+        if max_val <= 0 or np.isnan(max_val): max_val = 1
 
-        if max_val <= 0 or np.isnan(max_val):
-            max_val = 1
+        # 2. Wykorzystanie 'fig' do ustawienia tła
+        fig, ax = plt.subplots(
+            figsize=(pic_width / 100, pic_height / 100)
+        )
+        
+        # Ustawiamy tło figury i obszaru wykresu na czarne
+        fig.patch.set_facecolor('black')
+        ax.set_facecolor('black')
 
-        plt.figure(figsize=(pic_width / 100, pic_height / 100))
-        plt.imshow(
-            pos_output.T,
-            cmap="Reds",
-            vmin=0,
-            vmax=max_val,
+        from matplotlib.colors import LinearSegmentedColormap
+        cmap_black_red = LinearSegmentedColormap.from_list("BlackRed", ["black", "red"])
+
+        ax.imshow(
+            pos_output.T, 
+            cmap=cmap_black_red, 
+            vmin=0, 
+            vmax=max_val, 
             aspect="auto"
         )
-        plt.axis("off")
 
+        ax.axis("off")
+
+        # 4. Zapis z wymuszeniem koloru tła (facecolor)
         plt.savefig(
             os.path.join(image_path, file_labels[col_idx] + ".png"),
             dpi=100,
             bbox_inches="tight",
-            pad_inches=0
+            pad_inches=0,
+            facecolor=fig.get_facecolor(), # Pobiera czarny kolor z fig
+            edgecolor='none'
         )
-        plt.close()
+
+        plt.close(fig) # Zamykamy konkretną figurę, by zwolnić pamięć
 
     print("KEGG pathway images prepared")
     return matrix_path
