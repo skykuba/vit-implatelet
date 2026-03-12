@@ -120,3 +120,4 @@ def generate_kegg_pathway_images(path,
         plt.close(fig)
 
     print("KEGG pathway images prepared.")
+    return pathway_path

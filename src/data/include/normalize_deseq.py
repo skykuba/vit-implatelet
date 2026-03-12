@@ -66,7 +66,7 @@ input_path_csv = os.path.join(script_dir, 'counts_raw.csv')
 #input_file = input_path_csv if os.path.exists(input_path_csv) else input_path_tsv
 input_file = input_path_csv
 
-output_path = os.path.join(script_dir, 'normalized_counts.tsv')
+output_path = os.path.join(script_dir, '../../../data/output/normalized_counts.tsv')
 
 try:
     if os.path.exists(input_file):
