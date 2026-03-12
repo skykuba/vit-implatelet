@@ -1,3 +1,11 @@
 pandas
 numpy
 pydeseq2
+torch
+torchvision
+scikit-learn
+wandb
+Pillow
+tqdm
+matplotlib
+seaborn
