@@ -65,8 +65,15 @@ def generate_kegg_pathway_images(path,
     # ---- Create directories ----
     pathway_path = create_dir_if_not_exists(path, pathways_folder)
     image_path = create_dir_if_not_exists(pathway_path, "Images")
+    matrix_path = create_dir_if_not_exists(pathway_path, "Matrices")
 
     sample_names = list(data_filtered.columns)
+
+    if sample_groups is not None and len(sample_groups) == len(sample_names):
+        file_labels = [f"{g}_{n}" for g, n in zip(sample_groups, sample_names)]
+    else:
+        file_labels = sample_names
+
     total_samples = min(max_images, len(sample_names)) if max_images else len(sample_names)
 
     # PALETA: Od czarnego do intensywnej czerwieni. 
@@ -81,6 +88,9 @@ def generate_kegg_pathway_images(path,
             sig_sym, met_sym, cancer_sym,
             data_filtered, col_idx, pic_width, pic_height
         )
+        matrix_save_name = os.path.join(matrix_path, f"{file_labels[col_idx]}.txt")
+        np.savetxt(matrix_save_name, output, fmt='%.6f', delimiter=' ')        
+
 
         # 2. PRZETWARZANIE: Wszystko ujemne staje się 0 (idealna czerń)
         processed_data = np.maximum(output, 0)
