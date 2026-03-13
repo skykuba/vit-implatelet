@@ -76,9 +76,8 @@ def generate_kegg_pathway_images(path,
 
     total_samples = min(max_images, len(sample_names)) if max_images else len(sample_names)
 
-    # PALETA: Od czarnego do intensywnej czerwieni. 
-    # Użycie "red" dwukrotnie zwiększa nasycenie dla średnich wartości.
-    cmap_kegg = LinearSegmentedColormap.from_list("KeggRed", ["black", "red", "red"], N=256)
+    # PALETA: od black do red, 256 kolorów
+    cmap_kegg = LinearSegmentedColormap.from_list("KeggRed", ["black", "red"], N=256)
 
     print(f"Generowanie obrazów ({pic_width}x{pic_height}) dla {total_samples} próbek...")
 
