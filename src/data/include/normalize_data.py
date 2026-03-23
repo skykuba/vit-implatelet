@@ -1,8 +1,22 @@
 import pandas as pd
+import math
 import numpy as np
 import os
 import sys
 
+def normalize_raw_data(counts_raw, min_log, max_log, log_values, min_value=1, max_value=255):
+  """
+  Normalize raw count data using log transformation and min-max scaling because median is 0
+  and highest value is 312102 so we have a wide range of values.
+  """
+  print("Normalizing data...")
+
+  range_log = max_log - min_log
+  range_target = max_value - min_value
+
+  normalized = (log_values - min_log) / range_log * range_target + min_value
+
+  return normalized.round().astype(int)
 
 def load_data(file_path):
   print(f"Loading data from {file_path}...")
@@ -29,6 +43,15 @@ if __name__ == '__main__':
   try:
     if os.path.exists(input_file):
       counts_raw = load_data(input_file)
+
+      log_values = np.log1p(counts_raw)
+      min_log = log_values.min().min()
+      max_log = log_values.max().max()
+
+      normalized_counts = normalize_raw_data(counts_raw, min_log, max_log, log_values)
+      os.makedirs(os.path.dirname(output_path), exist_ok=True)
+      normalized_counts.to_csv(output_path, sep='\t')
+
     else:
       print(f"ERROR: Input file not found. Checked:\n- {input_path_csv}\n- {input_path_tsv}")
       sys.exit(1)
