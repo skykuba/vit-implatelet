@@ -4,7 +4,7 @@ import shutil
 import requests
 import pandas as pd
 
-from normalize_deseq import normalize_deseq2_no_report
+from normalize_data import normalize_raw_data
 from annotateData import annotateData
 from generatePathwayImages import generate_kegg_pathway_images
 
@@ -31,7 +31,7 @@ os.makedirs(output_dir, exist_ok=True)
 counts_file_csv = "counts_raw.csv"
 #counts_file_tsv = os.path.join(raw_dir, "counts_raw.tsv")
 #counts_file = counts_file_csv if os.path.exists(counts_file_csv) else counts_file_tsv
-counts_file = counts_file_csv
+counts_file = os.path.join(raw_dir, counts_file_csv)
 
 gtf_url = "https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/gencode.v19.chr_patch_hapl_scaff.annotation.gtf.gz"
 gtf_gz = os.path.join(raw_dir, "gencode.v19.annotation.gtf.gz")
@@ -80,7 +80,7 @@ counts_raw = counts_raw.apply(pd.to_numeric, errors="coerce").dropna()
 # ==============================
 
 print("Normalizing data...")
-data_filtered = normalize_deseq2_no_report(counts_raw, fast=False)
+data_filtered = normalize_raw_data(counts_raw)
 print("Normalization completed.")
 
 # ==============================
