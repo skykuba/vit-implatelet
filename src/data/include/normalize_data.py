@@ -1,20 +1,40 @@
 import pandas as pd
-import math
 import numpy as np
 import os
 import sys
 
-def normalize_raw_data(counts_raw, min_log, max_log, log_values, min_value=1, max_value=255):
+import pandas as pd
+import numpy as np
+
+def normalize_raw_data(counts_raw, min_value=2, mid_value=65, max_value=255):
   """
-  Normalize raw count data using log transformation and min-max scaling because median is 0
-  and highest value is 312102 so we have a wide range of values.
+  Two-step log min-max scaling normalization with divide point at 95 percentiline. 
   """
   print("Normalizing data...")
 
-  range_log = max_log - min_log
-  range_target = max_value - min_value
+  normalized = pd.DataFrame(1.0, index=counts_raw.index, columns=counts_raw.columns)
 
-  normalized = (log_values - min_log) / range_log * range_target + min_value
+  log_data = np.log1p(counts_raw)
+  
+  flat_logs = log_data.values.flatten()
+  non_zero_vals = flat_logs[flat_logs > 0]
+
+  min_log = np.min(non_zero_vals)
+  max_log = np.max(non_zero_vals)
+  p95 = np.percentile(non_zero_vals, 95)
+
+  mask_low = (log_data > 0) & (log_data <= p95)
+  mask_high = (log_data > p95)
+
+  range_low = p95 - min_log
+  normalized[mask_low] = (
+      (log_data[mask_low] - min_log) / range_low * (mid_value - min_value) + min_value
+  )
+
+  range_high = max_log - p95
+  normalized[mask_high] = (
+      (log_data[mask_high] - p95) / range_high * (max_value - (mid_value + 1)) + (mid_value + 1)
+  )
 
   return normalized.round().astype(int)
 
@@ -44,11 +64,7 @@ if __name__ == '__main__':
     if os.path.exists(input_file):
       counts_raw = load_data(input_file)
 
-      log_values = np.log1p(counts_raw)
-      min_log = log_values.min().min()
-      max_log = log_values.max().max()
-
-      normalized_counts = normalize_raw_data(counts_raw, min_log, max_log, log_values)
+      normalized_counts = normalize_raw_data(counts_raw)
       os.makedirs(os.path.dirname(output_path), exist_ok=True)
       normalized_counts.to_csv(output_path, sep='\t')
 
