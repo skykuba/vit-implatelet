@@ -14,13 +14,13 @@ if not os.path.exists(data_dir):
 
 os.makedirs(output_dir, exist_ok=True)
 
-def get_image_array(file, scale="L"):
+def get_image_array(file):
     """
     Loads an image and converts it to a numpy array.
     """
     image_path = os.path.join(input_dir, file)
     img = Image.open(image_path)
-    img = img.convert(scale)
+    img = img.convert("RGB")
     return np.array(img)
 
 def find_last_red_pixel(row):
@@ -30,6 +30,7 @@ def find_last_red_pixel(row):
     for i in range(len(row)-1, -1, -1):
         if row[i] != 0:
             return i
+    return 0
 
 def get_max_rows_lengths(images_files):
     """
@@ -38,7 +39,8 @@ def get_max_rows_lengths(images_files):
     """
     max_rows_lengths = {}
     for file in images_files:
-        img_array = get_image_array(file)
+        img_array_RGB = get_image_array(file)
+        img_array = img_array_RGB[:, :, 0]
         for row_id, row in enumerate(img_array):
             max_length = find_last_red_pixel(row)
             if row_id not in max_rows_lengths or max_length > max_rows_lengths[row_id]:
@@ -145,7 +147,8 @@ def generate_new_images_arrays(images_files, rg_rows, b_rows, img_length=224, pa
     for file in images_files:
         RG_patches = []
         B_patches = []
-        img_array = get_image_array(file)
+        img_array_RGB = get_image_array(file)
+        img_array = img_array_RGB[:, :, 0]
         for row_id in rg_rows:
             patch = generate_RG_patch_from_row(img_array[row_id], patch_length)
             RG_patches.append(patch)
