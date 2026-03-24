@@ -14,6 +14,15 @@ if not os.path.exists(data_dir):
 
 os.makedirs(output_dir, exist_ok=True)
 
+def get_image_array(file):
+    """
+    Loads an image and converts it to a numpy array.
+    """
+    image_path = os.path.join(input_dir, file)
+    img = Image.open(image_path)
+    img = img.convert("L")  # Convert to grayscale
+    return np.array(img)
+
 def find_black_pixel(row):
     """
     Returns the index of the last red pixel or length of the row if no black pixel is found.
