@@ -14,16 +14,16 @@ if not os.path.exists(data_dir):
 
 os.makedirs(output_dir, exist_ok=True)
 
-def get_image_array(file):
+def get_image_array(file, scale="L"):
     """
     Loads an image and converts it to a numpy array.
     """
     image_path = os.path.join(input_dir, file)
     img = Image.open(image_path)
-    img = img.convert("L")  # Convert to grayscale
+    img = img.convert(scale)
     return np.array(img)
 
-def find_black_pixel(row):
+def find_last_red_pixel(row):
     """
     Returns the index of the last red pixel or length of the row if no black pixel is found.
     """
@@ -38,12 +38,9 @@ def get_max_rows_lengths(images_files):
     """
     max_rows_lengths = {}
     for file in images_files:
-        img_path = os.path.join(input_dir, file)
-        img = Image.open(img_path)
-        img = img.convert("L")
-        img_array = np.array(img)
+        img_array = get_image_array(file)
         for row_id, row in enumerate(img_array):
-            max_length = find_black_pixel(row)
+            max_length = find_last_red_pixel(row)
             if row_id not in max_rows_lengths or max_length > max_rows_lengths[row_id]:
                 max_rows_lengths[row_id] = max_length
 
