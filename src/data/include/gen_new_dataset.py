@@ -110,14 +110,12 @@ def sum_RG_and_B_patches(RG_patches, B_patches):
         RG_patches[i] = RG_patches[i] + B_patches[i]
     return RG_patches
 
-def fill_array_with_patches(RG_patches, B_patches, img_length=224*224, patch_length=16*16):
+def fill_array_with_patches(summed_patches, img_length=224*224, patch_length=16*16):
     """
     Fills the new image array with summed RG and B patches.
     """
     new_image = np.zeros((img_length, img_length, 3), dtype=int)
     num_patches_per_row = img_length // patch_length
-
-    summed_patches = sum_RG_and_B_patches(RG_patches, B_patches)
 
     for i, patch in enumerate(summed_patches):
         row = i // num_patches_per_row
@@ -130,12 +128,20 @@ def fill_array_with_patches(RG_patches, B_patches, img_length=224*224, patch_len
         x_end = x_start + patch_length
 
         new_image[y_start:y_end, x_start:x_end] = patch
-        
-def generate_new_images(images_files, rg_rows, b_rows, img_length=224, patch_length=16):
+    return new_image
+
+def save_new_image(new_image_array, file_name):
+    """
+    Saves the new image array to the specified output path.
+    """
+    new_image = Image.fromarray(new_image_array.astype('uint8'), 'RGB')
+    output_path = os.path.join(output_dir, file_name)
+    new_image.save(output_path)
+
+def generate_new_images_arrays(images_files, rg_rows, b_rows, img_length=224, patch_length=16):
     """
     Generates new images based on the RG and B row groups.
     """
-    #TODO: finish this function
     for file in images_files:
         RG_patches = []
         B_patches = []
@@ -146,9 +152,12 @@ def generate_new_images(images_files, rg_rows, b_rows, img_length=224, patch_len
         for row_id in b_rows:
             patch = generate_B_patch_from_row(img_array[row_id], patch_length)
             B_patches.append(patch)
-        fill_array_with_patches(RG_patches, B_patches, img_length, patch_length)
+        summed_patches = sum_RG_and_B_patches(RG_patches, B_patches)
+        new_img_array = fill_array_with_patches(summed_patches, img_length, patch_length)
+        save_new_image(new_img_array, file)
 
 if __name__ == "__main__":
     images = os.listdir(input_dir)
     max_rows_lengths = get_max_rows_lengths(images)
     rg_rows, b_rows = group_rows(max_rows_lengths)
+    generate_new_images_arrays(images, rg_rows, b_rows)
