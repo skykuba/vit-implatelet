@@ -57,6 +57,35 @@ def group_rows(max_rows_lengths, img_size=224*224, patch_size=16*16):
     b_rows = [row_id for row_id, _ in max_rows_lengths[num_patches:]]
     return rg_rows, b_rows
 
+def generate_RG_patch_from_row(row, patch_length=16):
+    """
+    Generates patch of size patch_length x patch_length from the given row in RG channels.
+    Firstly fills the patch with red pixels from left-top. 
+    If there is no space for red pixels switch to green channel and fill patch from left-top with green pixels.
+    """
+    patch = np.zeros((patch_length, patch_length, 3), dtype=int)
+    length = find_last_red_pixel(row)
+
+    # RED CHANNEL
+    for y in range(patch_length):
+        for x in range(patch_length):
+            # y*patch_length + x is the index of the pixel in the row; to 255
+            if y*patch_length + x <= length:
+                patch[y, x, 0] = row[y*patch_length + x]
+            else:
+                return patch
+            
+    if length > patch_length*patch_length - 1:
+        # GREEN CHANNEL
+        for y in range(patch_length):
+            for x in range(patch_length):
+                # patch_length**2 + y*patch_length + x is the index of the pixel in the row; from 256
+                if patch_length**2 + y*patch_length + x <= length:
+                    patch[y, x, 1] = row[patch_length**2 + y*patch_length + x]
+                else:
+                    return patch
+
+
 if __name__ == "__main__":
     images = os.listdir(input_dir)
     max_rows_lengths = get_max_rows_lengths(images)
