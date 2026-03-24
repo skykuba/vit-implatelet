@@ -100,21 +100,53 @@ def generate_B_patch_from_row(row, patch_length=16):
             else:
                 return patch
 
-def generate_new_images(images_files, rg_rows, b_rows, img_size=224*224, patch_size=16*16):
+def sum_RG_and_B_patches(RG_patches, B_patches):
+    """
+    Sums RG and B patches to create a new image patch.
+    RG patches are summed with B patches by adding pixel values.
+    """
+    # There are less B patches
+    for i in range(len(B_patches)):
+        RG_patches[i] = RG_patches[i] + B_patches[i]
+    return RG_patches
+
+def fill_array_with_patches(RG_patches, B_patches, img_length=224*224, patch_length=16*16):
+    """
+    Fills the new image array with summed RG and B patches.
+    """
+    new_image = np.zeros((img_length, img_length, 3), dtype=int)
+    num_patches_per_row = img_length // patch_length
+
+    summed_patches = sum_RG_and_B_patches(RG_patches, B_patches)
+
+    for i, patch in enumerate(summed_patches):
+        row = i // num_patches_per_row
+        col = i % num_patches_per_row
+
+        y_start = row * patch_length
+        y_end = y_start + patch_length
+
+        x_start = col * patch_length
+        x_end = x_start + patch_length
+
+        new_image[y_start:y_end, x_start:x_end] = patch
+        
+def generate_new_images(images_files, rg_rows, b_rows, img_length=224, patch_length=16):
     """
     Generates new images based on the RG and B row groups.
     """
     #TODO: finish this function
-    RG_patches = []
-    B_patches = []
     for file in images_files:
+        RG_patches = []
+        B_patches = []
         img_array = get_image_array(file)
         for row_id in rg_rows:
-            patch = generate_RG_patch_from_row(img_array[row_id])
+            patch = generate_RG_patch_from_row(img_array[row_id], patch_length)
             RG_patches.append(patch)
         for row_id in b_rows:
-            patch = generate_B_patch_from_row(img_array[row_id])
-            B_patches.append(patch)            
+            patch = generate_B_patch_from_row(img_array[row_id], patch_length)
+            B_patches.append(patch)
+        fill_array_with_patches(RG_patches, B_patches, img_length, patch_length)
 
 if __name__ == "__main__":
     images = os.listdir(input_dir)
