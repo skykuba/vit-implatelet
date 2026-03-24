@@ -40,8 +40,18 @@ def get_max_rows_lengths(images_files):
 
     return sorted(max_rows_lengths.items(), key=lambda x: x[1], reverse=True)
 
+def group_rows(max_rows_lengths, img_size=224*224, patch_size=16*16):
+    """
+    Group rows into two groups:
+    - RG: first 'n' rows with the longest max length, where 'n' is num of patches in img.
+    - B: rest of the rows.
+    """
+    num_patches = img_size // patch_size
+    rg_rows = [row_id for row_id, _ in max_rows_lengths[:num_patches]]
+    b_rows = [row_id for row_id, _ in max_rows_lengths[num_patches:]]
+    return rg_rows, b_rows
+
 if __name__ == "__main__":
     images = os.listdir(input_dir)
     max_rows_lengths = get_max_rows_lengths(images)
-    print("Max rows lengths (ID, length):")
-    print(max_rows_lengths)
+    rg_rows, b_rows = group_rows(max_rows_lengths)
