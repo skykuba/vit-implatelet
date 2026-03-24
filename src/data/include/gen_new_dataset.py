@@ -85,6 +85,36 @@ def generate_RG_patch_from_row(row, patch_length=16):
                 else:
                     return patch
 
+def generate_B_patch_from_row(row, patch_length=16):
+    """
+    Generates patch of size patch_length x patch_length from the given row in B channel.
+    Fills the patch with blue pixels from left-top.
+    """
+    patch = np.zeros((patch_length, patch_length, 3), dtype=int)
+    length = find_last_red_pixel(row)
+
+    for y in range(patch_length):
+        for x in range(patch_length):
+            if y*patch_length + x <= length:
+                patch[y, x, 2] = row[y*patch_length + x]
+            else:
+                return patch
+
+def generate_new_images(images_files, rg_rows, b_rows, img_size=224*224, patch_size=16*16):
+    """
+    Generates new images based on the RG and B row groups.
+    """
+    #TODO: finish this function
+    RG_patches = []
+    B_patches = []
+    for file in images_files:
+        img_array = get_image_array(file)
+        for row_id in rg_rows:
+            patch = generate_RG_patch_from_row(img_array[row_id])
+            RG_patches.append(patch)
+        for row_id in b_rows:
+            patch = generate_B_patch_from_row(img_array[row_id])
+            B_patches.append(patch)            
 
 if __name__ == "__main__":
     images = os.listdir(input_dir)
