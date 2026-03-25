@@ -39,6 +39,8 @@ def get_max_rows_lengths(images_files):
     """
     max_rows_lengths = {}
     for file in images_files:
+        if not file.endswith(('.png', '.jpg', '.jpeg')):
+            raise ValueError(f"Unsupported file format: {file}. Only .png, .jpg, and .jpeg are supported.")
         img_array_RGB = get_image_array(file)
         img_array = img_array_RGB[:, :, 0]
         for row_id, row in enumerate(img_array):
@@ -147,6 +149,8 @@ def generate_new_images_arrays(images_files, rg_rows, b_rows, img_length=224, pa
     Generates new images based on the RG and B row groups.
     """
     for file in images_files:
+        if not file.endswith(('.png', '.jpg', '.jpeg')):
+            raise ValueError(f"Unsupported file format: {file}. Only .png, .jpg, and .jpeg are supported.")
         RG_patches = []
         B_patches = []
         img_array_RGB = get_image_array(file)
@@ -162,7 +166,11 @@ def generate_new_images_arrays(images_files, rg_rows, b_rows, img_length=224, pa
         save_new_image(new_img_array, file)
 
 if __name__ == "__main__":
+    if not os.path.exists(input_dir):
+        raise FileNotFoundError(f"Input directory not found")
     images = os.listdir(input_dir)
+    if not images:
+        raise FileNotFoundError(f"No images found in the input directory")
     max_rows_lengths = get_max_rows_lengths(images)
     rg_rows, b_rows = group_rows(max_rows_lengths)
     generate_new_images_arrays(images, rg_rows, b_rows)
