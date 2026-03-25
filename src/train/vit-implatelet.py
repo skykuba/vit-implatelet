@@ -884,8 +884,8 @@ history_phase1 = train_phase(
 # ## 12. Phase 2: Fine-tuning Last Blocks
 # 
 # **Phase 2 Strategy:**
-# - Unfreezing last 4 transformer blocks + head
-# - Lower learning rate (1e-5) for stable fine-tuning
+# - Unfreezing last N transformer blocks + head (freezing the rest)
+# - Lower learning rate for stable fine-tuning
 # - CosineAnnealingWarmRestarts scheduler
 # - Continuing from best model of Phase 1
 # %%
