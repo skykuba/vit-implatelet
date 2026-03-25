@@ -25,14 +25,22 @@ def normalize_raw_data(counts_raw, min_value=2, mid_value=65, max_value=255):
   mask_high = (log_data > p95)
 
   range_low = p95 - min_log
-  normalized[mask_low] = (
-      (log_data[mask_low] - min_log) / range_low * (mid_value - min_value) + min_value
-  )
+  if range_low == 0:
+    # All non-zero values fall into a zero-width low range; assign a constant value.
+    normalized[mask_low] = mid_value
+  else:
+    normalized[mask_low] = (
+        (log_data[mask_low] - min_log) / range_low * (mid_value - min_value) + min_value
+    )
 
   range_high = max_log - p95
-  normalized[mask_high] = (
-      (log_data[mask_high] - p95) / range_high * (max_value - (mid_value + 1)) + (mid_value + 1)
-  )
+  if range_high == 0:
+    # All values in the high range have the same log; assign them the maximum value.
+    normalized[mask_high] = max_value
+  else:
+    normalized[mask_high] = (
+        (log_data[mask_high] - p95) / range_high * (max_value - (mid_value + 1)) + (mid_value + 1)
+    )
 
   return normalized.round().astype(int)
 
