@@ -3,8 +3,6 @@ import numpy as np
 import os
 import sys
 
-import pandas as pd
-import numpy as np
 
 def normalize_raw_data(counts_raw, min_value=2, mid_value=65, max_value=255):
   """
