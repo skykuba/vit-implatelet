@@ -14,7 +14,7 @@ def normalize_raw_data(counts_raw, min_value=2, mid_value=65, max_value=255):
 
   log_data = np.log1p(counts_raw)
   
-  flat_logs = log_data.values.flatten()
+  flat_logs = log_data.to_numpy().ravel()
   non_zero_vals = flat_logs[flat_logs > 0]
 
   min_log = np.min(non_zero_vals)
