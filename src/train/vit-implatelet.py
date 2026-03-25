@@ -1070,25 +1070,26 @@ for f in os.listdir(Config.SAVE_DIR):
     size_mb = os.path.getsize(filepath) / (1024 * 1024)
     print(f"   - {f} ({size_mb:.1f} MB)")
 # %% [markdown]
-# ## 14. Training Results Visualization
+# ## 15. Training Results Visualization
 # 
-# Plots showing training progress for both phases:
+# Plots showing training progress for all phases:
 # - Loss (train vs validation)
 # - Accuracy (train vs validation)  
 # - AUC-ROC (validation)
 # %%
-def plot_training_history(history_phase1, history_phase2, save_path=None):
+def plot_training_history(history_phase1, history_phase2, history_phase3, save_path=None):
     """Plot training curves."""
     fig, axes = plt.subplots(1, 3, figsize=(15, 4))
     
     # Combine histories
     epochs_p1 = len(history_phase1['train_loss'])
+    epochs_p2 = epochs_p1 + len(history_phase2['train_loss'])
     
-    all_train_loss = history_phase1['train_loss'] + history_phase2['train_loss']
-    all_val_loss = history_phase1['val_loss'] + history_phase2['val_loss']
-    all_train_acc = history_phase1['train_acc'] + history_phase2['train_acc']
-    all_val_acc = history_phase1['val_acc'] + history_phase2['val_acc']
-    all_val_auc = history_phase1['val_auc'] + history_phase2['val_auc']
+    all_train_loss = history_phase1['train_loss'] + history_phase2['train_loss'] + history_phase3['train_loss']
+    all_val_loss = history_phase1['val_loss'] + history_phase2['val_loss'] + history_phase3['val_loss']
+    all_train_acc = history_phase1['train_acc'] + history_phase2['train_acc'] + history_phase3['train_acc']
+    all_val_acc = history_phase1['val_acc'] + history_phase2['val_acc'] + history_phase3['val_acc']
+    all_val_auc = history_phase1['val_auc'] + history_phase2['val_auc'] + history_phase3['val_auc']
     
     epochs = range(1, len(all_train_loss) + 1)
     
@@ -1096,6 +1097,7 @@ def plot_training_history(history_phase1, history_phase2, save_path=None):
     axes[0].plot(epochs, all_train_loss, 'b-', label='Train', linewidth=2)
     axes[0].plot(epochs, all_val_loss, 'r-', label='Val', linewidth=2)
     axes[0].axvline(x=epochs_p1, color='g', linestyle='--', label='Phase 2', linewidth=2)
+    axes[0].axvline(x=epochs_p2, color='orange', linestyle='--', label='Phase 3', linewidth=2)
     axes[0].set_xlabel('Epoch', fontsize=12)
     axes[0].set_ylabel('Loss', fontsize=12)
     axes[0].set_title('Training and Validation Loss', fontsize=14)
@@ -1106,6 +1108,7 @@ def plot_training_history(history_phase1, history_phase2, save_path=None):
     axes[1].plot(epochs, all_train_acc, 'b-', label='Train', linewidth=2)
     axes[1].plot(epochs, all_val_acc, 'r-', label='Val', linewidth=2)
     axes[1].axvline(x=epochs_p1, color='g', linestyle='--', label='Phase 2', linewidth=2)
+    axes[1].axvline(x=epochs_p2, color='orange', linestyle='--', label='Phase 3', linewidth=2)
     axes[1].set_xlabel('Epoch', fontsize=12)
     axes[1].set_ylabel('Accuracy (%)', fontsize=12)
     axes[1].set_title('Training and Validation Accuracy', fontsize=14)
@@ -1115,6 +1118,7 @@ def plot_training_history(history_phase1, history_phase2, save_path=None):
     # AUC plot
     axes[2].plot(epochs, all_val_auc, 'r-', label='Val AUC', linewidth=2)
     axes[2].axvline(x=epochs_p1, color='g', linestyle='--', label='Phase 2', linewidth=2)
+    axes[2].axvline(x=epochs_p2, color='orange', linestyle='--', label='Phase 3', linewidth=2)
     axes[2].set_xlabel('Epoch', fontsize=12)
     axes[2].set_ylabel('AUC', fontsize=12)
     axes[2].set_title('Validation AUC-ROC', fontsize=14)
@@ -1133,6 +1137,7 @@ def plot_training_history(history_phase1, history_phase2, save_path=None):
 plot_training_history(
     history_phase1, 
     history_phase2,
+    history_phase3,
     os.path.join(Config.SAVE_DIR, "training_curves.png")
 )
 # %%
@@ -1158,12 +1163,14 @@ print(f"\nConfusion matrix saved to: {os.path.join(Config.SAVE_DIR, 'confusion_m
 # 
 # Training completed! Model trained using progressive fine-tuning:
 # 
-# 1. **Phase 1** - Training classifier head with frozen encoder
+# 1. **Phase 1** - Training full model from scratch
 # 2. **Phase 2** - Fine-tuning last transformer blocks
+# 3. **Phase 3** - Fine-tuning classifier head
 # 
 # Result files located in `/kaggle/working/weights/`:
 # - `vit_phase1_best.pth` - best model from Phase 1
-# - `vit_phase2_best.pth` - best model from Phase 2  
+# - `vit_phase2_best.pth` - best model from Phase 2
+# - `vit_phase3_best.pth` - best model from Phase 3
 # - `vit_final.pth` - final model
 # - `training_curves.png` - training plots
 # - `confusion_matrix.png` - confusion matrix
