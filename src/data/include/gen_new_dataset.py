@@ -48,7 +48,7 @@ def get_max_rows_lengths(images_files):
 
     return sorted(max_rows_lengths.items(), key=lambda x: x[1], reverse=True)
 
-def group_rows(max_rows_lengths, img_size=224*224, patch_size=16*16):
+def group_rows(max_rows_lengths, img_size=224, patch_size=16):
     """
     Group rows into two groups:
     - RG: first 'n' rows with the longest max length, where 'n' is num of patches in img.
