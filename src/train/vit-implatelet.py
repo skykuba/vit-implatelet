@@ -856,9 +856,8 @@ class_weights = class_weights / class_weights.sum()  # Normalization
 
 print(f"Class weights: {class_weights.cpu().numpy()}")
 
-criterion = nn.CrossEntropyLoss(
-    label_smoothing=Config.LABEL_SMOOTHING
-)
+#class_weights = torch.tensor([1.1]).to(Config.DEVICE)
+criterion = nn.BCEWithLogitsLoss(pos_weight=class_weights)
 # %%
 # ============================================================================
 # PHASE 1: Training Full Model from Scratch
