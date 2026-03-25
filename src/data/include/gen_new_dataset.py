@@ -86,6 +86,8 @@ def generate_RG_patch_from_row(row, patch_length=16):
                     patch[y, x, 1] = row[patch_length**2 + y*patch_length + x]
                 else:
                     return patch
+    else:
+        return patch
 
 def generate_B_patch_from_row(row, patch_length=16):
     """
