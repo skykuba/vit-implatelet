@@ -115,8 +115,6 @@ class Config:
     # Phase 1: Training the whole model from scratch
     PHASE1_EPOCHS = 100
     PHASE1_LR = 1e-3
-    
-    PHASE1_LR = 1e-4
 
     # Phase 2: Fine-tuning last blocks + head
     PHASE2_EPOCHS = 50
@@ -514,7 +512,7 @@ class ViTClassifier(nn.Module):
     
     def __init__(self, num_classes=2, dropout=0.1, pretrained=True):
         super().__init__()
-        
+
         # Load pretrained ViT-B/16
         if pretrained:
             weights = ViT_B_16_Weights.IMAGENET1K_V1
@@ -535,10 +533,11 @@ class ViTClassifier(nn.Module):
             nn.Dropout(dropout),
             nn.Linear(256, num_classes)
         )
-        
+
     def forward(self, x):
         return self.vit(x)
-    
+
+
     def freeze_encoder(self):
         """Freeze all encoder layers (for Phase 1)."""
         for param in self.vit.parameters():
@@ -546,33 +545,33 @@ class ViTClassifier(nn.Module):
         # Unfreeze head
         for param in self.vit.heads.parameters():
             param.requires_grad = True
-            
+
         trainable = sum(p.numel() for p in self.parameters() if p.requires_grad)
         print(f"Encoder frozen. Trainable parameters: {trainable:,}")
-    
+
     def unfreeze_last_blocks(self, n_blocks=4):
         """Unfreeze last N transformer blocks (for Phase 2)."""
         # First freeze everything
         for param in self.vit.parameters():
             param.requires_grad = False
-        
+
         # Unfreeze head
         for param in self.vit.heads.parameters():
             param.requires_grad = True
-        
+
         # Unfreeze last N encoder blocks
         total_blocks = len(self.vit.encoder.layers)
         for i in range(total_blocks - n_blocks, total_blocks):
             for param in self.vit.encoder.layers[i].parameters():
                 param.requires_grad = True
-        
+
         # Unfreeze layer norm
         for param in self.vit.encoder.ln.parameters():
             param.requires_grad = True
-            
+
         trainable = sum(p.numel() for p in self.parameters() if p.requires_grad)
         print(f"Last {n_blocks} blocks unfrozen. Trainable parameters: {trainable:,}")
-    
+
     def unfreeze_all(self):
         """Unfreeze entire model."""
         for param in self.vit.parameters():
