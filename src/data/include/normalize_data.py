@@ -6,7 +6,7 @@ import sys
 
 def normalize_raw_data(counts_raw, min_value=2, mid_value=65, max_value=255):
   """
-  Two-step log min-max scaling normalization with divide point at 95 percentiline. 
+  Two-step log min-max scaling normalization with divide point at 95 percentile. 
   """
   print("Normalizing data...")
 
