@@ -929,7 +929,53 @@ history_phase2 = train_phase(
     os.path.join(Config.SAVE_DIR, "vit_phase2_best.pth")
 )
 # %% [markdown]
-# ## 13. Evaluation on Test Set
+# ## 13. Phase 3: Fine-tuning Classifier Head
+# 
+# **Phase 3 Strategy:**
+# - Frozen ViT encoder (all transformer blocks)
+# - Fine-tuning only custom classification head
+# - Lowest learning rate
+# - Continuing from best model of Phase 2
+# %%
+# ============================================================================
+# PHASE 3: Fine-tuning Classifier Head
+# ============================================================================
+
+# Load best model from Phase 2
+checkpoint = torch.load(os.path.join(Config.SAVE_DIR, "vit_phase2_best.pth"), weights_only=False)
+
+if isinstance(model, nn.DataParallel):
+    state_dict = checkpoint['model_state_dict']
+    if not any(k.startswith('module.') for k in state_dict.keys()):
+        state_dict = {f'module.{k}': v for k, v in state_dict.items()}
+    model.load_state_dict(state_dict)
+else:
+    model.load_state_dict(checkpoint['model_state_dict'])
+
+print(f"Loaded best model from Phase 2 (AUC: {checkpoint['val_auc']:.4f})")
+
+# Freeze encoder, train only head
+base_model = model.module if isinstance(model, nn.DataParallel) else model
+base_model.freeze_encoder()
+
+optimizer_phase3 = optim.AdamW(
+    filter(lambda p: p.requires_grad, model.parameters()),
+    lr=Config.PHASE3_LR,
+    weight_decay=Config.WEIGHT_DECAY
+)
+
+scheduler_phase3 = optim.lr_scheduler.ReduceLROnPlateau(
+    optimizer_phase3, mode='min', factor=0.5, patience=3
+)
+
+history_phase3 = train_phase(
+    model, train_loader, val_loader, criterion,
+    optimizer_phase3, scheduler_phase3, Config.DEVICE,
+    Config.PHASE3_EPOCHS, "Phase 3: Fine-tuning Classifier Head",
+    os.path.join(Config.SAVE_DIR, "vit_phase3_best.pth")
+)
+# %% [markdown]
+# ## 14. Evaluation on Test Set
 # 
 # Final evaluation of best model on test set with calculation of:
 # - Accuracy, AUC-ROC
@@ -986,8 +1032,8 @@ def evaluate_model(model, test_loader, device):
     
     return test_acc, test_auc, cm
 
-# Load best model from Phase 2
-best_checkpoint = torch.load(os.path.join(Config.SAVE_DIR, "vit_phase2_best.pth"), weights_only=False)
+# Load best model from Phase 3
+best_checkpoint = torch.load(os.path.join(Config.SAVE_DIR, "vit_phase3_best.pth"), weights_only=False)
 
 # Handle DataParallel
 if isinstance(model, nn.DataParallel):
@@ -998,7 +1044,7 @@ if isinstance(model, nn.DataParallel):
 else:
     model.load_state_dict(best_checkpoint['model_state_dict'])
 
-print(f"Loaded best model from Phase 2 (AUC: {best_checkpoint['val_auc']:.4f})")
+print(f"Loaded best model from Phase 3 (AUC: {best_checkpoint['val_auc']:.4f})")
 
 # Evaluation
 test_acc, test_auc, cm = evaluate_model(model, test_loader, Config.DEVICE)
