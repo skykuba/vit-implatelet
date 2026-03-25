@@ -19,9 +19,9 @@ def get_image_array(file):
     Loads an image and converts it to a numpy array.
     """
     image_path = os.path.join(input_dir, file)
-    img = Image.open(image_path)
-    img = img.convert("RGB")
-    return np.array(img)
+    with Image.open(image_path) as img:
+        img = img.convert("RGB")
+        return np.array(img)
 
 def find_last_red_pixel(row):
     """
