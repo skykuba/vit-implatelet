@@ -508,9 +508,9 @@ print("get_weighted_sampler function defined")
 # - `unfreeze_last_blocks(n)` - unfreezes last n transformer blocks for Phase 2
 # %%
 class ViTClassifier(nn.Module):
-    """ViT-B/16 with custom classification head."""
-    
-    def __init__(self, num_classes=2, dropout=0.1, pretrained=True):
+    """ViT-B/16 with custom progressive classification head."""
+
+    def __init__(self, num_classes=1, dropout=0.5, pretrained=True):
         super().__init__()
 
         # Load pretrained ViT-B/16
@@ -520,18 +520,15 @@ class ViTClassifier(nn.Module):
             print("Loaded pretrained ImageNet weights")
         else:
             self.vit = vit_b_16(weights=None)
-        
-        # Get hidden dimension
-        hidden_dim = self.vit.heads.head.in_features  
-        
-        # Replace classification head with custom one
+
+        hidden_dim = self.vit.heads.head.in_features
+
         self.vit.heads = nn.Sequential(
-            nn.LayerNorm(hidden_dim),
+            nn.Linear(hidden_dim, 4),
+            nn.BatchNorm1d(4),
+            nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(hidden_dim, 256),
-            nn.GELU(),
-            nn.Dropout(dropout),
-            nn.Linear(256, num_classes)
+            nn.Linear(4, num_classes)
         )
 
     def forward(self, x):
