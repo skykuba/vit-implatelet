@@ -773,12 +773,12 @@ def train_phase(model, train_loader, val_loader, criterion, optimizer, scheduler
 
 print("EarlyStopping and train_phase defined")
 # %% [markdown]
-# ## 11. Phase 1: Training Classifier Head
+# ## 11. Phase 1: Training Full Model
 # 
 # **Phase 1 Strategy:**
-# - Frozen ViT encoder (all transformer blocks)
-# - Training only custom classification head
-# - Higher learning rate (1e-3)
+# - Unfrozen ViT encoder (all transformer blocks)
+# - Training full model from scratch
+# - Higher learning rate
 # - ReduceLROnPlateau scheduler
 # %%
 # Check if data was loaded correctly
@@ -861,9 +861,9 @@ criterion = nn.CrossEntropyLoss(
 )
 # %%
 # ============================================================================
-# PHASE 1: Training only the classifier head
+# PHASE 1: Training Full Model from Scratch
 # ============================================================================
-model.freeze_encoder()
+model.unfreeze_all()
 
 optimizer_phase1 = optim.AdamW(
     filter(lambda p: p.requires_grad, model.parameters()),
@@ -878,7 +878,7 @@ scheduler_phase1 = optim.lr_scheduler.ReduceLROnPlateau(
 history_phase1 = train_phase(
     model, train_loader, val_loader, criterion,
     optimizer_phase1, scheduler_phase1, Config.DEVICE,
-    Config.PHASE1_EPOCHS, "Phase 1: Training Classifier Head",
+    Config.PHASE1_EPOCHS, "Phase 1: Training Full Model",
     os.path.join(Config.SAVE_DIR, "vit_phase1_best.pth")
 )
 # %% [markdown]
