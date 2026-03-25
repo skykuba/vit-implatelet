@@ -103,8 +103,8 @@ class Config:
         SAVE_DIR = "weights_local"
     
     ENV = ENV
-    NUM_CLASSES = 2
-    PRETRAINED = True
+    NUM_CLASSES = 1
+    PRETRAINED = False
     
     IMG_SIZE = 224
     ORIGINAL_SIZE = (373, 259) 
@@ -112,15 +112,21 @@ class Config:
     BATCH_SIZE = 32  
     NUM_WORKERS = 0 
     
-    # Phase 1: Training only the classifier head (frozen encoder)
+    # Phase 1: Training the whole model from scratch
     PHASE1_EPOCHS = 100
     PHASE1_LR = 1e-3
     
+    PHASE1_LR = 1e-4
+
     # Phase 2: Fine-tuning last blocks + head
-    PHASE2_EPOCHS = 100
+    PHASE2_EPOCHS = 50
     PHASE2_LR = 1e-5
     UNFREEZE_BLOCKS = 4  # Unfreeze last N transformer blocks
-    
+
+    # Phase 3: Fine-tuning only the classifier head
+    PHASE3_EPOCHS = 50
+    PHASE3_LR = 1e-6
+
     # ========================
     # REGULARIZATION
     # ========================
@@ -188,6 +194,7 @@ print(f"Device: {Config.DEVICE}")
 print(f"Batch size: {Config.BATCH_SIZE}")
 print(f"Phase 1: {Config.PHASE1_EPOCHS} epochs, LR={Config.PHASE1_LR}")
 print(f"Phase 2: {Config.PHASE2_EPOCHS} epochs, LR={Config.PHASE2_LR}")
+print(f"Phase 3: {Config.PHASE3_EPOCHS} epochs, LR={Config.PHASE3_LR}")
 print("=" * 50)
 # %%
 def get_kaggle_username():
@@ -212,6 +219,8 @@ run = wandb.init(
         "phase1_lr": Config.PHASE1_LR,
         "phase2_epochs": Config.PHASE2_EPOCHS,
         "phase2_lr": Config.PHASE2_LR,
+        "phase3_epochs": Config.PHASE3_EPOCHS,
+        "phase3_lr": Config.PHASE3_LR,
         "unfreeze_blocks": Config.UNFREEZE_BLOCKS,
         "weight_decay": Config.WEIGHT_DECAY,
         "dropout": Config.DROPOUT,
